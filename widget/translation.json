@@ -1,0 +1,34 @@
+{
+  "en": {
+    "translation": {
+      "Show media": "Show media",
+      "Media position": "Media position",
+      "Left": "Left",
+      "Right": "Right",
+      "Media": "Media",
+      "VU meter": "VU meter",
+      "VU theme": "VU theme",
+      "Analog": "Analog",
+      "Default theme": "Default theme",
+      "Audio source": "Audio source",
+      "Windows output": "Windows output",
+      "Windows input": "Windows input"
+    }
+  },
+  "ko": {
+    "translation": {
+      "Show media": "미디어 표시",
+      "Media position": "미디어 위치",
+      "Left": "왼쪽",
+      "Right": "오른쪽",
+      "Media": "미디어",
+      "VU meter": "VU 미터",
+      "VU theme": "VU 미터 테마",
+      "Analog": "아날로그",
+      "Default theme": "기본 테마",
+      "Audio source": "오디오 소스",
+      "Windows output": "Windows 기본 출력",
+      "Windows input": "Windows 기본 입력"
+    }
+  }
+}

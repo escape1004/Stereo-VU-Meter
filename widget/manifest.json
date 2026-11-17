@@ -1,0 +1,31 @@
+{
+  "author": "Escape",
+  "id": "com.escape.xeneon.vumeter",
+  "name": "Stereo VU Meter",
+  "description": "Stereo RMS level and LED frequency spectrum for XENEON EDGE",
+  "version": "2.9.7",
+  "preview_icon": "resources/vu-icon.png",
+  "min_app_version": "5.52",
+  "min_framework_version": "1.0.0",
+  "os": [
+    {
+      "platform": "windows"
+    }
+  ],
+  "supported_devices": [
+    {
+      "type": "dashboard_lcd"
+    }
+  ],
+  "permissions": [
+    {
+      "type": "url",
+      "domain": "127.0.0.1",
+      "port": 18742
+    }
+  ],
+  "interactive": true,
+  "required_plugins": [
+    "widgetbuilder.mediadataprovider:Media:1.1"
+  ]
+}

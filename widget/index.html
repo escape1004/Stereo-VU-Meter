@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>'Stereo VU Meter'</title>
+<link rel="icon" type="image/png" href="resources/vu-icon.png" />
+<meta name="x-icue-widget-preview" content="resources/vu-preview.png" />
+<link rel="stylesheet" href="meter.css" />
+<meta name="x-icue-property" content="showMedia" data-label="tr('Show media')" data-type="switch" data-default="false" />
+<meta name="x-icue-property" content="mediaSide" data-label="tr('Media position')" data-type="combobox" data-default="'left'" data-values="[{'key':'left','value':tr('Left')},{'key':'right','value':tr('Right')}]" />
+<meta name="x-icue-property" content="meterTheme" data-label="tr('VU theme')" data-type="combobox" data-default="'led'" data-values="[{'key':'led','value':tr('Default theme')},{'key':'analog','value':tr('Analog')}]" />
+<meta name="x-icue-property" content="audioSource" data-label="tr('Audio source')" data-type="combobox" data-default="'output'" data-values="[{'key':'output','value':tr('Windows output')},{'key':'input','value':tr('Windows input')}]" />
+<script type="application/json" id="x-icue-groups">
+[{"title":"tr('VU meter')","properties":["meterTheme","audioSource"]},{"title":"tr('Media')","properties":["showMedia","mediaSide"]}]
+</script>
+</head>
+<body>
+<main class="dashboard">
+  <section id="media-panel" class="panel media-panel" hidden aria-label="미디어">
+    <div class="cover-slot"><div class="cover"><img id="album-cover" alt="" hidden /><span id="cover-placeholder" aria-hidden="true">♪</span></div></div>
+    <div class="seek-row placeholder" id="seek-row"><input id="media-seek" type="range" aria-label="재생 위치" min="0" max="1" value="0" disabled /></div>
+    <div class="track-info"><strong id="song-title"><span class="track-line">재생 정보 없음</span></strong><span id="song-artist"><span class="track-line"></span></span></div>
+    <div class="transport">
+      <button id="previous-track" type="button" aria-label="이전 곡" disabled><span class="transport-icon previous" aria-hidden="true"></span></button>
+      <button id="play-pause" type="button" aria-label="재생" disabled><span class="transport-icon play" aria-hidden="true"></span></button>
+      <button id="next-track" type="button" aria-label="다음 곡" disabled><span class="transport-icon next" aria-hidden="true"></span></button>
+    </div>
+  </section>
+  <section class="meter-panel" aria-label="Stereo VU meter">
+  <div class="titlebar"><div class="controls"><span id="status">CONNECTING</span><button id="capture" type="button" aria-label="캡처 시작" aria-pressed="false" disabled>START</button></div></div>
+  <div id="digital-meter">
+  <div class="meter"><b>L</b><div class="track"><i id="left"></i></div><output id="leftDb">−∞</output></div>
+  <div class="meter"><b>R</b><div class="track"><i id="right"></i></div><output id="rightDb">−∞</output></div>
+  <div class="scale"><span>−60</span><span>−45</span><span>−30</span><span>−15</span><span>0 dBFS</span></div>
+  </div>
+  <section aria-label="Frequency spectrum" id="spectrum"></section>
+  <footer><span>60 Hz</span><span>250 Hz</span><span>1 kHz</span><span>4 kHz</span><span>16 kHz</span></footer>
+  <div id="analog-meter" hidden>
+    <div class="rack-leds" aria-label="Stereo LED levels">
+      <b class="rack-led-label">LEFT</b><div class="rack-led-row" data-side="L"></div>
+      <span></span><div class="rack-led-scale" aria-hidden="true"><span>−60</span><span>−48</span><span>−36</span><span>−24</span><span>−12</span><span>0 dBFS</span></div>
+      <b class="rack-led-label">RIGHT</b><div class="rack-led-row" data-side="R"></div>
+    </div>
+    <div class="rack-meters" aria-label="Analog meters">
+      <div class="rack-channel"><div class="rack-dial" data-channel="L"></div><span>CH1 · L</span></div>
+      <div class="rack-channel"><div class="rack-dial" data-channel="R"></div><span>CH2 · R</span></div>
+      <div class="rack-channel"><div class="rack-dial" data-channel="LOW"></div><span>CH3 · LOW</span></div>
+      <div class="rack-channel"><div class="rack-dial" data-channel="HIGH"></div><span>CH4 · HIGH</span></div>
+    </div>
+  </div>
+  </section>
+</main>
+<script src="meter.js"></script>
+<script src="panels.js"></script>
+<script>
+(() => {
+  const media = document.getElementById("media-panel");
+  const digital = document.getElementById("digital-meter");
+  const analog = document.getElementById("analog-meter");
+  const on = value => value === true || value === 1 || value === "true" || value === "1";
+  let previous = "";
+  function syncOptions() {
+    const mediaOn = on(typeof showMedia === "undefined" ? window.showMedia : showMedia);
+    const analogOn = (typeof meterTheme === "undefined" ? window.meterTheme : meterTheme) === "analog";
+    const mediaOrder = (typeof mediaSide === "undefined" ? window.mediaSide : mediaSide) === "right" ? 1 : -2;
+    const source = (typeof audioSource === "undefined" ? window.audioSource : audioSource) === "input" ? "input" : "output";
+    const next = [mediaOn, analogOn, mediaOrder, source].join(",");
+    if (next === previous) return;
+    previous = next;
+    media.hidden = !mediaOn;
+    analog.hidden = !analogOn;
+    analog.closest(".dashboard").classList.toggle("analog-theme", analogOn);
+    digital.hidden = analogOn;
+    media.style.order = mediaOrder;
+    document.documentElement.dataset.audioSource = source;
+    document.dispatchEvent(new Event("vuOptionsChanged"));
+  }
+  const hooks = { onICUEInitialized: syncOptions, onDataUpdated: syncOptions };
+  // Use the host's binding even when it is a lexical global.
+  if (typeof icueEvents === "object" && icueEvents) Object.assign(icueEvents, hooks);
+  else if (typeof icueEvents !== "undefined") icueEvents = hooks;
+  else window.icueEvents = hooks;
+  syncOptions();
+  // The editor and device preview can update settings on different schedules.
+  setInterval(syncOptions, 600);
+  document.addEventListener("visibilitychange", syncOptions);
+})();
+</script>
+</body>
+</html>
